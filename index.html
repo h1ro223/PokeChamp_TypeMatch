@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Champions - タイプ相性ツール</title>
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <header>
+            <h1>Pokemon Champions</h1>
+            <p>タイプ相性チェック & データ登録ツール</p>
+        </header>
+
+        <main>
+            <section class="glass-card type-checker">
+                <h2>タイプ相性チェック</h2>
+                <div class="checker-grid">
+                    <div class="input-group">
+                        <h3>使用する技のタイプ</h3>
+                        <div class="type-select-container">
+                            <label>タイプ 1</label>
+                            <div class="custom-select">
+                                <input type="text" id="atk1" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
+                                <ul class="dropdown-list" id="atk1-list"></ul>
+                                <img id="atk1-icon" class="type-icon" src="" alt="" style="display:none;">
+                            </div>
+                        </div>
+                        <div class="type-select-container">
+                            <label>タイプ 2 (任意)</label>
+                            <div class="custom-select">
+                                <input type="text" id="atk2" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
+                                <ul class="dropdown-list" id="atk2-list"></ul>
+                                <img id="atk2-icon" class="type-icon" src="" alt="" style="display:none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vs-divider">VS</div>
+
+                    <div class="input-group">
+                        <h3>防御側のポケモンのタイプ</h3>
+                        <div class="type-select-container">
+                            <label>タイプ 1</label>
+                            <div class="custom-select">
+                                <input type="text" id="def1" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
+                                <ul class="dropdown-list" id="def1-list"></ul>
+                                <img id="def1-icon" class="type-icon" src="" alt="" style="display:none;">
+                            </div>
+                        </div>
+                        <div class="type-select-container">
+                            <label>タイプ 2 (任意)</label>
+                            <div class="custom-select">
+                                <input type="text" id="def2" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
+                                <ul class="dropdown-list" id="def2-list"></ul>
+                                <img id="def2-icon" class="type-icon" src="" alt="" style="display:none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-area">
+                    <h3>相性結果</h3>
+                    <div id="result-display" class="result-display">
+                        <span class="placeholder-text">タイプを選択してください</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-card registration-section">
+                <h2>データ手動登録 (仮実装)</h2>
+                <p class="desc">後でポケモン情報や技・特性を登録できるようになるフォームです。</p>
+                <form id="registration-form" class="reg-form">
+                    <div class="form-row">
+                        <div class="form-control">
+                            <label>ポケモン名</label>
+                            <input type="text" placeholder="例: ピカチュウ">
+                        </div>
+                        <div class="form-control">
+                            <label>特性</label>
+                            <input type="text" placeholder="例: せいでんき">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-control">
+                            <label>タイプ1</label>
+                            <select>
+                                <option value="">選択してください</option>
+                                <option>でんき</option>
+                                <option>その他...</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label>タイプ2</label>
+                            <select>
+                                <option value="">なし</option>
+                                <option>ひこう</option>
+                                <option>その他...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-control">
+                        <label>覚える技 (カンマ区切り)</label>
+                        <textarea placeholder="例: 10まんボルト, でんこうせっか, アイアンテール"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">登録する (Consoleに仮出力)</button>
+                </form>
+            </section>
+        </main>
+
+        <footer>
+            <p>made by hiro/ヒロ</p>
+            <p><a href="https://github.com/h1ro223" target="_blank">https://github.com/h1ro223</a></p>
+        </footer>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
