@@ -27,113 +27,117 @@ document.addEventListener('DOMContentLoaded', () => {
         /* 妖 */ [1, 0.5, 1, 1, 1, 1, 2, 0.5, 1, 1, 1, 1, 1, 1, 2, 2, 0.5, 1]
     ];
 
-    // ひらがな・カタカナ変換用
-    const hiraToKata = (str) => {
-        return str.replace(/[\u3041-\u3096]/g, match => {
-            return String.fromCharCode(match.charCodeAt(0) + 0x60);
+    let selectedAtk = []; // ["炎", "格闘"] などの最大2つの配列
+    let selectedDef = [];
+
+    let bookmarks = JSON.parse(localStorage.getItem('pokemon-bookmarks')) || [];
+
+    const atkGrid = document.getElementById('grid-atk');
+    const defGrid = document.getElementById('grid-def');
+    const atkDisplay = document.getElementById('display-atk');
+    const defDisplay = document.getElementById('display-def');
+    const resultDisplay = document.getElementById('result-display');
+    const btnBookmark = document.getElementById('btn-bookmark');
+
+    // UI初期化：18タイプのボタンを生成
+    const initGrid = () => {
+        TYPES.forEach(type => {
+            // 攻撃側ボタン
+            const atkBtn = document.createElement('button');
+            atkBtn.className = 'type-btn';
+            atkBtn.innerHTML = `<img src="./Type/${type}.png" alt="${type}" onerror="this.style.display='none'"><span>${type}</span>`;
+            atkBtn.dataset.type = type;
+            atkBtn.addEventListener('click', () => handleTypeClick(type, 'atk'));
+            atkGrid.appendChild(atkBtn);
+
+            // 防御側ボタン
+            const defBtn = document.createElement('button');
+            defBtn.className = 'type-btn';
+            defBtn.innerHTML = `<img src="./Type/${type}.png" alt="${type}" onerror="this.style.display='none'"><span>${type}</span>`;
+            defBtn.dataset.type = type;
+            defBtn.addEventListener('click', () => handleTypeClick(type, 'def'));
+            defGrid.appendChild(defBtn);
         });
     };
 
-    // 入力・サジェスト設定
-    const setupAutocomplete = (inputId, listId, iconId) => {
-        const input = document.getElementById(inputId);
-        const list = document.getElementById(listId);
-        const icon = document.getElementById(iconId);
-
-        // リスト描画
-        const renderList = (filterText = '') => {
-            list.innerHTML = '';
-            const normalizedFilter = hiraToKata(filterText);
-            
-            const filtered = TYPES.filter(type => {
-                // 部分一致で検索（前方一致でもOKだが、使いやすさ重視で部分一致）
-                return hiraToKata(type).includes(normalizedFilter);
-            });
-
-            if (filtered.length > 0) {
-                filtered.forEach(type => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<img src="./${type}.png" alt="${type}" onerror="this.style.display='none'"> <span>${type}</span>`;
-                    li.addEventListener('mousedown', () => {
-                        input.value = type;
-                        icon.src = `./${type}.png`;
-                        icon.style.display = 'block';
-                        list.style.display = 'none';
-                        calculateEffectiveness();
-                    });
-                    list.appendChild(li);
-                });
-                list.style.display = 'block';
-            } else {
-                list.style.display = 'none';
+    // タイプボタンクリック時の処理
+    const handleTypeClick = (type, side) => {
+        let currentArray = side === 'atk' ? selectedAtk : selectedDef;
+        
+        const index = currentArray.indexOf(type);
+        if (index > -1) {
+            // 既に選択されている場合は解除
+            currentArray.splice(index, 1);
+        } else {
+            // 新規追加。最大2つまで。2つなら一番古いのを消す
+            if (currentArray.length >= 2) {
+                currentArray.shift(); // 先頭を削除
             }
-        };
+            currentArray.push(type);
+        }
 
-        // イベントリスナー
-        input.addEventListener('focus', () => renderList(input.value));
-        input.addEventListener('input', (e) => {
-            renderList(e.target.value);
-            // 入力が不正になったらアイコン非表示
-            if (!TYPES.includes(e.target.value)) {
-                icon.style.display = 'none';
-            } else {
-                icon.src = `./${e.target.value}.png`;
-                icon.style.display = 'block';
-            }
-            calculateEffectiveness();
-        });
-        input.addEventListener('blur', () => {
-            // クリックイベントが発火するように少し遅らせる
-            setTimeout(() => { list.style.display = 'none'; }, 150);
-            
-            // 完全一致しない場合はクリア
-            if (!TYPES.includes(input.value) && input.value !== "") {
-                input.value = "";
-                icon.style.display = 'none';
-                calculateEffectiveness();
-            }
-        });
+        updateUI();
     };
 
-    setupAutocomplete('atk1', 'atk1-list', 'atk1-icon');
-    setupAutocomplete('atk2', 'atk2-list', 'atk2-icon');
-    setupAutocomplete('def1', 'def1-list', 'def1-icon');
-    setupAutocomplete('def2', 'def2-list', 'def2-icon');
+    // リセット機能
+    document.getElementById('reset-atk').addEventListener('click', () => { selectedAtk = []; updateUI(); });
+    document.getElementById('reset-def').addEventListener('click', () => { selectedDef = []; updateUI(); });
+    document.getElementById('reset-all').addEventListener('click', () => { selectedAtk = []; selectedDef = []; updateUI(); });
 
-    // 相性計算ロジック
+    // UIの更新（ボタンのハイライト、選択状態の表示、結果計算）
+    const updateUI = () => {
+        // ボタンのアクティブ状態の更新
+        Array.from(atkGrid.children).forEach(btn => {
+            if (selectedAtk.includes(btn.dataset.type)) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        Array.from(defGrid.children).forEach(btn => {
+            if (selectedDef.includes(btn.dataset.type)) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        // 選択されたタイプの表示エリア更新
+        renderDisplay(atkDisplay, selectedAtk);
+        renderDisplay(defDisplay, selectedDef);
+
+        // 相性の計算
+        calculateEffectiveness();
+    };
+
+    const renderDisplay = (displayEl, arr) => {
+        if (arr.length === 0) {
+            displayEl.innerHTML = '<span class="placeholder-text">未選択</span>';
+            return;
+        }
+        displayEl.innerHTML = arr.map(type => 
+            `<div class="selected-item"><img src="./Type/${type}.png" onerror="this.style.display='none'">${type}</div>`
+        ).join('');
+    };
+
     const calculateEffectiveness = () => {
-        const atk1Str = document.getElementById('atk1').value;
-        const atk2Str = document.getElementById('atk2').value;
-        const def1Str = document.getElementById('def1').value;
-        const def2Str = document.getElementById('def2').value;
-
-        const resultDisplay = document.getElementById('result-display');
-
-        // 最低限 atk1 と def1 が必要
-        if (!TYPES.includes(atk1Str) || !TYPES.includes(def1Str)) {
+        if (selectedAtk.length === 0 || selectedDef.length === 0) {
             resultDisplay.innerHTML = '<span class="placeholder-text">タイプを選択してください</span>';
             resultDisplay.className = 'result-display';
+            btnBookmark.disabled = true;
             return;
         }
 
-        const atk1Idx = TYPES.indexOf(atk1Str);
-        const atk2Idx = TYPES.includes(atk2Str) ? TYPES.indexOf(atk2Str) : -1;
-        const def1Idx = TYPES.indexOf(def1Str);
-        const def2Idx = TYPES.includes(def2Str) ? TYPES.indexOf(def2Str) : -1;
+        btnBookmark.disabled = false;
 
-        // タイプ重複の場合は無視（例: 炎・炎 -> 炎）
-        const realDef2Idx = (def1Idx === def2Idx) ? -1 : def2Idx;
-        const realAtk2Idx = (atk1Idx === atk2Idx) ? -1 : atk2Idx;
+        const atk1Idx = TYPES.indexOf(selectedAtk[0]);
+        const atk2Idx = selectedAtk.length > 1 ? TYPES.indexOf(selectedAtk[1]) : -1;
+        const def1Idx = TYPES.indexOf(selectedDef[0]);
+        const def2Idx = selectedDef.length > 1 ? TYPES.indexOf(selectedDef[1]) : -1;
 
         // atk1の倍率計算
         let mult1 = TYPE_CHART[atk1Idx][def1Idx];
-        if (realDef2Idx !== -1) mult1 *= TYPE_CHART[atk1Idx][realDef2Idx];
+        if (def2Idx !== -1) mult1 *= TYPE_CHART[atk1Idx][def2Idx];
 
         // atk2の倍率計算 (存在する場合のみ乗算)
         let totalMult = mult1;
-        if (realAtk2Idx !== -1) {
-            let mult2 = TYPE_CHART[realAtk2Idx][def1Idx];
-            if (realDef2Idx !== -1) mult2 *= TYPE_CHART[realAtk2Idx][realDef2Idx];
+        if (atk2Idx !== -1) {
+            let mult2 = TYPE_CHART[atk2Idx][def1Idx];
+            if (def2Idx !== -1) mult2 *= TYPE_CHART[atk2Idx][def2Idx];
             totalMult *= mult2;
         }
 
@@ -163,15 +167,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultDisplay.innerText = text;
         resultDisplay.className = `result-display ${colorClass}`;
-        
-        // 軽いアニメーション効果
-        resultDisplay.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            resultDisplay.style.transform = 'scale(1)';
-        }, 150);
     };
 
-    // フォーム仮実装のイベント
+    // ----- ブックマーク機能 -----
+    const renderBookmarks = () => {
+        const listEl = document.getElementById('bookmark-list');
+        if (bookmarks.length === 0) {
+            listEl.innerHTML = '<p class="placeholder-text" style="font-size:0.9rem;">ブックマークはありません。</p>';
+            return;
+        }
+
+        listEl.innerHTML = '';
+        bookmarks.forEach((bm, idx) => {
+            const item = document.createElement('div');
+            item.className = 'bookmark-item';
+
+            const atkHtml = bm.atk.map(t => `<span class="bm-part"><img src="./Type/${t}.png" class="bm-icon" onerror="this.style.display='none'"> ${t}</span>`).join('');
+            const defHtml = bm.def.map(t => `<span class="bm-part"><img src="./Type/${t}.png" class="bm-icon" onerror="this.style.display='none'"> ${t}</span>`).join('');
+
+            item.innerHTML = `
+                <div class="bookmark-info" title="クリックでこの対面を読み込む">
+                    <div style="display:flex; gap:0.5rem; align-items:center;">[攻撃] ${atkHtml}</div>
+                    <span class="bm-vs">VS</span>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">[防御] ${defHtml}</div>
+                </div>
+                <button class="btn-delete-bm" data-idx="${idx}">削除</button>
+            `;
+
+            // クリックで復元
+            item.querySelector('.bookmark-info').addEventListener('click', () => {
+                selectedAtk = [...bm.atk];
+                selectedDef = [...bm.def];
+                updateUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // 上に戻る
+            });
+
+            // 削除ボタン
+            item.querySelector('.btn-delete-bm').addEventListener('click', (e) => {
+                e.stopPropagation();
+                bookmarks.splice(idx, 1);
+                saveBookmarks();
+            });
+
+            listEl.appendChild(item);
+        });
+    };
+
+    const saveBookmarks = () => {
+        localStorage.setItem('pokemon-bookmarks', JSON.stringify(bookmarks));
+        renderBookmarks();
+    };
+
+    btnBookmark.addEventListener('click', () => {
+        // 重複チェック
+        const isDuplicate = bookmarks.some(bm => 
+            JSON.stringify(bm.atk) === JSON.stringify(selectedAtk) && 
+            JSON.stringify(bm.def) === JSON.stringify(selectedDef)
+        );
+        if (isDuplicate) {
+            alert('すでにブックマークされています。');
+            return;
+        }
+
+        bookmarks.push({ atk: [...selectedAtk], def: [...selectedDef] });
+        saveBookmarks();
+    });
+
+    // 初期化処理
+    initGrid();
+    updateUI();
+    renderBookmarks();
+
+    // 仮フォーム
     document.getElementById('registration-form').addEventListener('submit', (e) => {
         e.preventDefault();
         console.log("ポケモン登録リクエストを受け付けました（仮実装）");

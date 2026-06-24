@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-animation"></div>
     <div class="container">
         <header>
             <h1>Pokemon Champions</h1>
@@ -17,56 +16,60 @@
 
         <main>
             <section class="glass-card type-checker">
-                <h2>タイプ相性チェック</h2>
+                <div class="card-header">
+                    <h2>タイプ相性チェック</h2>
+                    <button id="reset-all" class="btn-reset-all">↺ すべてリセット</button>
+                </div>
+                
                 <div class="checker-grid">
+                    <!-- 攻撃側 -->
                     <div class="input-group">
-                        <h3>使用する技のタイプ</h3>
-                        <div class="type-select-container">
-                            <label>タイプ 1</label>
-                            <div class="custom-select">
-                                <input type="text" id="atk1" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
-                                <ul class="dropdown-list" id="atk1-list"></ul>
-                                <img id="atk1-icon" class="type-icon" src="" alt="" style="display:none;">
-                            </div>
+                        <div class="group-header">
+                            <h3>使用する技のタイプ <span class="sub-text">(最大2つ)</span></h3>
+                            <button id="reset-atk" class="btn-reset">リセット</button>
                         </div>
-                        <div class="type-select-container">
-                            <label>タイプ 2 (任意)</label>
-                            <div class="custom-select">
-                                <input type="text" id="atk2" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
-                                <ul class="dropdown-list" id="atk2-list"></ul>
-                                <img id="atk2-icon" class="type-icon" src="" alt="" style="display:none;">
-                            </div>
+                        <div class="selected-types-display" id="display-atk">
+                            <span class="placeholder-text">未選択</span>
+                        </div>
+                        <div class="type-grid" id="grid-atk">
+                            <!-- JSでボタンが生成される -->
                         </div>
                     </div>
 
                     <div class="vs-divider">VS</div>
 
+                    <!-- 防御側 -->
                     <div class="input-group">
-                        <h3>防御側のポケモンのタイプ</h3>
-                        <div class="type-select-container">
-                            <label>タイプ 1</label>
-                            <div class="custom-select">
-                                <input type="text" id="def1" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
-                                <ul class="dropdown-list" id="def1-list"></ul>
-                                <img id="def1-icon" class="type-icon" src="" alt="" style="display:none;">
-                            </div>
+                        <div class="group-header">
+                            <h3>防御側のポケモンのタイプ <span class="sub-text">(最大2つ)</span></h3>
+                            <button id="reset-def" class="btn-reset">リセット</button>
                         </div>
-                        <div class="type-select-container">
-                            <label>タイプ 2 (任意)</label>
-                            <div class="custom-select">
-                                <input type="text" id="def2" class="type-input" placeholder="タイプを入力/選択" autocomplete="off">
-                                <ul class="dropdown-list" id="def2-list"></ul>
-                                <img id="def2-icon" class="type-icon" src="" alt="" style="display:none;">
-                            </div>
+                        <div class="selected-types-display" id="display-def">
+                            <span class="placeholder-text">未選択</span>
+                        </div>
+                        <div class="type-grid" id="grid-def">
+                            <!-- JSでボタンが生成される -->
                         </div>
                     </div>
                 </div>
 
+                <!-- 結果 -->
                 <div class="result-area">
                     <h3>相性結果</h3>
                     <div id="result-display" class="result-display">
                         <span class="placeholder-text">タイプを選択してください</span>
                     </div>
+                    <div class="bookmark-actions">
+                        <button id="btn-bookmark" class="btn-bookmark" disabled>⭐ この組み合わせをブックマーク</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ブックマークリスト -->
+            <section class="glass-card bookmark-section">
+                <h2>⭐ ブックマークした対面</h2>
+                <div id="bookmark-list" class="bookmark-list">
+                    <p class="placeholder-text" style="font-size:0.9rem;">ブックマークはありません。</p>
                 </div>
             </section>
 
